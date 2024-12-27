@@ -28,8 +28,18 @@ app.post("/",async(req,res)=>{
     }
 })
 
+app.delete("/:id",async(res,req)=>{
+    const{id}=req.params;
+    try {
+        await pool.query("DELETE FROM records WHERE todo_id=$1",[id]);
+        res.json("Deleted Successfully..!");
+    } catch (error) {
+        console.error(error.mesage);
+    }
+})
 
-PORT = process.env.PORT;
+
+PORT = process.env.X_ZOHO_CATALYST_LISTEN_PORT;
 app.listen(PORT, () => {
     console.log(`The server Runing in port ${PORT}`)
 });
