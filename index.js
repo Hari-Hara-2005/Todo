@@ -64,7 +64,7 @@ app.post("/register", async (req, res) => {
     const { name, email, password } = req.body;
     try {
         const hashPassword = await bcrypt.hash(password, 10);
-        const response = await pool.query("INSERT INTO users (user_name,user_email,user_password) VALUES($1,$2,$3) RETURNING*", { name, email, hashPassword });
+        const response = await pool.query("INSERT INTO users (user_name,user_email,user_password) VALUES($1,$2,$3) RETURNING *", [name, email, hashPassword]);
         res.json(response.rows[0]);
     } catch (error) {
         console.error(error.mesage);
