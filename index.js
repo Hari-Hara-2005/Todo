@@ -18,20 +18,20 @@ app.get("/", async (req, res) => {
     }
 });
 
-app.post("/",async(req,res)=>{
-    const{desc}=req.body;
+app.post("/", async (req, res) => {
+    const { desc } = req.body;
     try {
-        const response = await pool.query("INSERT INTO records (todo_desc) values($1) RETURNING*",[desc]);
+        const response = await pool.query("INSERT INTO records (todo_desc) values($1) RETURNING*", [desc]);
         res.json(response.rows[0])
     } catch (error) {
         console.error(error.mesage);
     }
 })
 
-app.delete("/:id",async(res,req)=>{
-    const{id}=req.params;
+app.delete("/:id", async (res, req) => {
+    const { id } = req.params;
     try {
-        await pool.query("DELETE FROM records WHERE todo_id=$1",[id]);
+        await pool.query("DELETE FROM records WHERE todo_id=$1", [id]);
         res.json("Deleted Successfully..!");
     } catch (error) {
         console.error(error.mesage);
@@ -39,7 +39,7 @@ app.delete("/:id",async(res,req)=>{
 })
 
 
-PORT = process.env.X_ZOHO_CATALYST_LISTEN_PORT;
+PORT = process.env.PORT;
 app.listen(PORT, () => {
     console.log(`The server Runing in port ${PORT}`)
 });
