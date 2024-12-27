@@ -71,10 +71,21 @@ app.post("/register", async (req, res) => {
     }
 });
 
-
-
-
-
+//Login Users;
+app.post("/login", async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const response = await pool.query("SELECT * FROM users WHERE user_email=$1", [email]);
+        if (response.rows.length === 0)
+            return res.json("The Email Not Exist");
+        const validPassword = await bcrypt.compare(password, response.rows[0].user_password);
+        if (!validPassword)
+            return res.json("Password Invalid");
+        res.json("Login Successfully..!");
+    } catch (error) {
+        console.error(error.mesage);
+    }
+})
 
 PORT = process.env.PORT;
 app.listen(PORT, () => {
