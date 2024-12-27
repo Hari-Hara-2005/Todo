@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const pool = require('./db');
 const cors = require('cors');
+const bcrypt = require('bcrypt')
 //middleware
 
 app.use(cors());
@@ -46,10 +47,6 @@ app.put("/:id", async (req, res) => {
     }
 })
 
-
-
-
-
 //Delete The Data; 
 app.delete("/:id", async (req, res) => {
     const { id } = req.params;
@@ -59,7 +56,24 @@ app.delete("/:id", async (req, res) => {
     } catch (error) {
         console.error(error.mesage);
     }
-})
+});
+
+
+//Register Users;
+app.post("/register", async (req, res) => {
+    const { name, email, password } = req.body;
+    try {
+        const hashPassword = await bcrypt.hash(password, 10);
+        const response = await pool.query("INSERT INTO users (user_name,user_email,user_password) VALUES($1,$2,$3) RETURNING*", { name, email, hashPassword });
+        res.json(response.rows[0]);
+    } catch (error) {
+        console.error(error.mesage);
+    }
+});
+
+
+
+
 
 
 PORT = process.env.PORT;
