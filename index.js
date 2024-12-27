@@ -28,7 +28,7 @@ app.post("/", async (req, res) => {
     }
 })
 
-app.delete("/:id", async (res, req) => {
+app.delete("/:id", async (req, res) => {
     const { id } = req.params;
     try {
         await pool.query("DELETE FROM records WHERE todo_id=$1", [id]);
