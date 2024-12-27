@@ -36,7 +36,7 @@ app.put("/:id", async (req, res) => {
     const { desc } = req.body;
     try {
         await pool.query(
-            "UPDATE your_table_name SET desc = $1 WHERE id = $2 RETURNING *",
+            "UPDATE records SET todo_desc = $1 WHERE todo_id = $2",
             [desc, id]
         );
         res.json("Updated Successfully..!")
