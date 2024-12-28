@@ -6,7 +6,10 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:5173'
+}));
+app.options('*', cors());
 app.use(express.json());
 
 // Middleware to verify JWT token and get user ID
