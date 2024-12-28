@@ -121,7 +121,7 @@ app.post("/login", async (req, res) => {
         if (!validPassword) {
             return res.status(400).json({ error: "Password Invalid" });
         }
-        const token = jwt.sign({ userId: response.rows[0].user_id }, process.env.JWT_SECRET, { expiresIn: '1hr' });
+        const token = jwt.sign({ userId: response.rows[0].user_id }, process.env.JWT_SECRET, { expiresIn: '10d' });
         res.json({ token });
     } catch (error) {
         console.error(error.message);
