@@ -3,7 +3,7 @@ const app = express();
 const pool = require('./db');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
-
+const jwt = require('jsonwebtoken');
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -88,6 +88,8 @@ app.post("/login", async (req, res) => {
             return res.status(400).json({ error: "Password Invalid" });
         }
         res.json({ message: "Login Successfully!" });
+        const token = jwt.sign({ userId: response.rows[0].user_id }, process.env.JWT_SCERET, { expiresIn: '1hr' });
+        res.json({ token });
     } catch (error) {
         console.error(error.message);
         res.status(500).json({ error: "Failed to login" });
