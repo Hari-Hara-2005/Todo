@@ -56,6 +56,25 @@ app.post("/", authenticateToken, async (req, res) => {
     }
 });
 
+// Update the Data
+app.put("/:id", authenticateToken, async (req, res) => {
+    const { id } = req.params;
+    const { desc, status } = req.body;
+    try {
+        const response = await pool.query(
+            "UPDATE records SET todo_desc = $1, status = $2 WHERE todo_id = $3 AND user_id = $4 RETURNING *",
+            [desc, status, id, req.userId]
+        );
+        if (response.rows.length === 0) {
+            return res.status(404).json({ error: "Record not found or you're not authorized" });
+        }
+        res.json({ message: "Updated Successfully!", data: response.rows[0] });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).json({ error: "Failed to update record" });
+    }
+});
+
 // Delete the Data
 app.delete("/:id", authenticateToken, async (req, res) => {
     const { id } = req.params;
