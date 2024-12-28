@@ -4,14 +4,33 @@ const pool = require('./db');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Get the Data
-app.get("/", async (req, res) => {
+// Middleware to verify JWT token and get user ID
+const authenticateToken = (req, res, next) => {
+    const token = req.header("Authorization")?.replace("Bearer ", "");
+    if (!token) {
+        return res.status(403).json({ error: "Access denied, no token provided" });
+    }
     try {
-        const response = await pool.query("SELECT * FROM records");
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.userId = decoded.userId;
+        next();
+    } catch (error) {
+        return res.status(401).json({ error: "Invalid or expired token" });
+    }
+};
+
+// Get Data
+app.get("/", authenticateToken, async (req, res) => {
+    try {
+        const response = await pool.query(
+            "SELECT * FROM records WHERE user_id = $1",
+            [req.userId]
+        );
         res.json(response.rows);
     } catch (error) {
         console.error(error.message);
@@ -20,10 +39,13 @@ app.get("/", async (req, res) => {
 });
 
 // Insert the Data
-app.post("/", async (req, res) => {
+app.post("/", authenticateToken, async (req, res) => {
     const { desc } = req.body;
     try {
-        const response = await pool.query("INSERT INTO records (todo_desc, status) VALUES ($1, 'pending') RETURNING *", [desc]);
+        const response = await pool.query(
+            "INSERT INTO records (todo_desc, status, user_id) VALUES ($1, 'pending', $2) RETURNING *",
+            [desc, req.userId]
+        );
         res.json(response.rows[0]);
     } catch (error) {
         console.error(error.message);
@@ -31,15 +53,17 @@ app.post("/", async (req, res) => {
     }
 });
 
-// Update the Data (including the status)
-app.put("/:id", async (req, res) => {
+// Update the Data
+app.put("/:id", authenticateToken, async (req, res) => {
     const { id } = req.params;
-    const { desc, status } = req.body;  // Now status is passed from the frontend
+    const { desc, status } = req.body;
     try {
         const response = await pool.query(
-            "UPDATE records SET todo_desc = $1, status = $2 WHERE todo_id = $3 RETURNING *",
-            [desc, status, id]
-        );
+            "UPDATE records SET todo_desc = $1, status = $2 WHERE todo_id = $3 AND user_id = $4 RETURNING *",
+            [desc, status, id, req.userId] 
+        if (response.rows.length === 0) {
+            return res.status(404).json({ error: "Record not found or you're not authorized" });
+        }
         res.json({ message: "Updated Successfully!", data: response.rows[0] });
     } catch (error) {
         console.error(error.message);
@@ -48,10 +72,16 @@ app.put("/:id", async (req, res) => {
 });
 
 // Delete the Data
-app.delete("/:id", async (req, res) => {
+app.delete("/:id", authenticateToken, async (req, res) => {
     const { id } = req.params;
     try {
-        await pool.query("DELETE FROM records WHERE todo_id=$1", [id]);
+        const response = await pool.query(
+            "DELETE FROM records WHERE todo_id = $1 AND user_id = $2 RETURNING *",
+            [id, req.userId]
+        );
+        if (response.rows.length === 0) {
+            return res.status(404).json({ error: "Record not found or you're not authorized" });
+        }
         res.json({ message: "Deleted Successfully!" });
     } catch (error) {
         console.error(error.message);
