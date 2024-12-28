@@ -23,7 +23,7 @@ app.get("/", async (req, res) => {
 app.post("/", async (req, res) => {
     const { desc } = req.body;
     try {
-        const response = await pool.query("INSERT INTO records (todo_desc) VALUES ($1) RETURNING *", [desc]);
+        const response = await pool.query("INSERT INTO records (todo_desc, status) VALUES ($1, 'pending') RETURNING *", [desc]);
         res.json(response.rows[0]);
     } catch (error) {
         console.error(error.message);
@@ -31,13 +31,16 @@ app.post("/", async (req, res) => {
     }
 });
 
-// Update the Data
+// Update the Data (including the status)
 app.put("/:id", async (req, res) => {
     const { id } = req.params;
-    const { desc } = req.body;
+    const { desc, status } = req.body;  // Now status is passed from the frontend
     try {
-        await pool.query("UPDATE records SET todo_desc = $1 WHERE todo_id = $2", [desc, id]);
-        res.json({ message: "Updated Successfully!" });
+        const response = await pool.query(
+            "UPDATE records SET todo_desc = $1, status = $2 WHERE todo_id = $3 RETURNING *",
+            [desc, status, id]
+        );
+        res.json({ message: "Updated Successfully!", data: response.rows[0] });
     } catch (error) {
         console.error(error.message);
         res.status(500).json({ error: "Failed to update record" });
