@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken');
 
 // Middleware
 app.use(cors({
-    origin: 'http://localhost:5173'
+    origin: 'https://todo-application-beryl.vercel.app/'
 }));
 app.options('*', cors());
 app.use(express.json());
