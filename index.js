@@ -4,7 +4,7 @@ const pool = require('./db');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-
+const JWT_SECRET = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
 // Middleware
 app.use(cors({
     origin: 'https://todo-application-hari-haras-projects.vercel.app'
@@ -19,7 +19,7 @@ const authenticateToken = (req, res, next) => {
         return res.status(403).json({ error: "Access denied, no token provided" });
     }
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, JWT_SECRET);
         req.userId = decoded.userId;
         next();
     } catch (error) {
@@ -121,7 +121,7 @@ app.post("/login", async (req, res) => {
         if (!validPassword) {
             return res.status(400).json({ error: "Password Invalid" });
         }
-        const token = jwt.sign({ userId: response.rows[0].user_id }, process.env.JWT_SECRET, { expiresIn: '10d' });
+        const token = jwt.sign({ userId: response.rows[0].user_id }, JWT_SECRET, { expiresIn: '10d' });
         res.json({ token });
     } catch (error) {
         console.error(error.message);
